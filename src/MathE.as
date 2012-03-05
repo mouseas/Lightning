@@ -1,6 +1,6 @@
 package 
 {
-	import org.flixel.FlxPoint;
+	import flash.geom.Point;
 	
 	/**
 	 * Misc functions to help out with common things in Etheria
@@ -29,8 +29,8 @@ package
 		 * @param	angle Angle at which the resulting point will be from center
 		 * @param	distance How far (in pixels) from the center the resulting point will be
 		 */
-		public static function pointFromAngle(center:FlxPoint, angle:Number, distance:Number = 1):FlxPoint {
-			var result:FlxPoint = new FlxPoint();
+		public static function pointFromAngle(center:Point, angle:Number, distance:Number = 1):Point {
+			var result:Point = new Point();
 			result.x = center.x + (distance * Math.cos(angle));
 			result.y = center.y + (distance * Math.sin(angle));
 			return result;
@@ -42,7 +42,7 @@ package
 		 * @param	two Point B
 		 * @return Distance between Point A and Point B.
 		 */
-		public static function distance(one:FlxPoint, two:FlxPoint):Number {
+		public static function distance(one:Point, two:Point):Number {
 			return pythag(one.x - two.x, one.y - two.y);
 		}
 		
@@ -65,7 +65,7 @@ package
 		 * needed, this will add 2 * pi to any negative angles until it's positive.
 		 * @return  The angle.
 		 */
-		public static function angleBetweenPoints(one:FlxPoint, two:FlxPoint, posAngleNeeded:Boolean=true):Number {
+		public static function angleBetweenPoints(one:Point, two:Point, posAngleNeeded:Boolean=true):Number {
 			var angle:Number = Math.atan2(two.y - one.y, two.x - one.x);
 			while (angle > Math.PI * 2) {
 				angle -= Math.PI * 2;
@@ -89,10 +89,10 @@ package
 		
 		/**
 		 * Given a point, it returns a string of the x and y coords rounded to 3 decimal places
-		 * @param	p FlxPoint given as input.
-		 * @return String representing the input FlxPoint.
+		 * @param	p Point given as input.
+		 * @return String representing the input Point.
 		 */
-		public static function pointString(p:FlxPoint):String {
+		public static function pointString(p:Point):String {
 			return "(" + rnd(p.x) + "," + rnd(p.y) + ")";
 		}
 		
