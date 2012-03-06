@@ -1,4 +1,5 @@
 package {
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Point;
@@ -11,7 +12,7 @@ package {
 		public var position:Point;
 		
 		/**
-		 * The position of the Electron at the previous cycle. Draw() draws a line from prevPosition to position.
+		 * Position of the Electron at the previous cycle.
 		 */
 		public var prevPosition:Point;
 		
@@ -31,9 +32,29 @@ package {
 		public var strength:Number = 1;
 		
 		/**
-		 * Off-screen electrons are set to dead and then skipped.
+		 * Width of lines traced by this electron.
 		 */
-		public var dead:Boolean = false;
+		public var lineWidth:Number;
+		
+		/**
+		 * Alpha of lines traced by this electron.
+		 */
+		public var lineAlpha:Number;
+		
+		/**
+		 * Color of lines traced by this electron.
+		 */
+		public var lineColor:uint;
+		
+		/**
+		 * Boolean used to skip electrons that have been merged or left the screen.
+		 */
+		public var dead:Boolean;
+		
+		/**
+		 * How much "time" passes between cycles. Used to help calculate velocity change and position change.
+		 */
+		public static var timeInterval:Number = 0.1;
 		
 		/**
 		 * How many cycles to run in total.
@@ -51,14 +72,29 @@ package {
 		public static var electrons:Array;
 		
 		/**
-		 * layer to which lines are added. This layer is drawn to the Main.displayBMD each cycle, then cleared.
+		 * The bitmap data to draw to.
+		 */
+		public static var BMD:BitmapData;
+		
+		/**
+		 * The sprite object to add lines to. At the end of each cycle this is drawn to BMD.
 		 */
 		public static var drawLayer:Sprite;
 		
 		/**
-		 * How much "time" passes between cycles. Used to help calculate velocity change and position change.
+		 * Standard width of a line.
 		 */
-		public static var timeInterval:Number = 0.1;
+		public static const LINE_WIDTH:Number = 1.0;
+		
+		/**
+		 * Standard transparency of a line.
+		 */
+		public static const LINE_ALPHA:Number = 0.2;
+		
+		/**
+		 * Standard color of a line.
+		 */
+		public static const LINE_COLOR:uint = 0xffffff;
 		
 		/**
 		 * The standard color to use for lines.
@@ -88,40 +124,56 @@ package {
 			velocity = new Point(0, 0);
 			force = new Point(0, 0);
 			
+			dead = false;
+			
+			strength = 10;
+			lineWidth = LINE_WIDTH;
+			lineAlpha = LINE_ALPHA;
+			lineColor = LINE_COLOR;
+			
 			electrons.push(this);
 		}
 		
 		/**
 		 * Each update cycle, calculate each point's force, then update velocity, then update position, then draw.
 		 */
-		public static function update(e:Event = null):void {
-			if (electrons != null && currentCycle < numCycles) {
-				for each (var elec:Electron in electrons) {
-					if (!elec.dead) {
-						elec.updateForce();
-						elec.updateVelocity();
+		public static function update(event:Event = null):void {
+			if (electrons != null) {
+				
+				drawLayer.graphics.clear();
+				
+				for each (var e:Electron in electrons) {
+					if (!e.dead) {
+						e.updateForce();
+						e.updateVelocity();
 					}
 				}
-				for each (elec in electrons) {
-					if (!elec.dead) {
-						elec.updatePosition();
-						elec.draw();
+				for each (e in electrons) {
+					if (!e.dead) {
+						e.updatePosition();
+						e.draw();
 					}
 				}
-				currentCycle++;
+				
+				BMD.draw(drawLayer);
+				
 			}
 		}
 		
 		private function updateForce():void {
+			force.x = 0;
+			force.y = 0;
 			for each (var e:Electron in electrons) {
 				if (e != this && !e.dead) {
 					var distance:Number = MathE.distance(this.position, e.position);
-					var angle:Number = MathE.angleBetweenPoints(this.position, e.position);
-					var f:Number = (e.strength * this.strength) / (distance * distance);
-					var vectX:Number = f * Math.cos(angle);
-					var vectY:Number = f * Math.sin(angle);
-					force.x += vectX;
-					force.y += vectY;
+					if (distance > Math.sqrt(strength)) {
+						var angle:Number = MathE.angleBetweenPoints(e.position, this.position);
+						var f:Number = -((e.strength * this.strength) / (distance * distance));
+						force.x += Math.cos(angle) * f;
+						force.y += Math.sin(angle) * f;
+					} else {
+						mergePaths(this, e);
+					}
 				}
 			}
 		}
@@ -132,28 +184,46 @@ package {
 		}
 		
 		private function updatePosition():void {
+			if (position.x < 0 || position.y < 0 || position.x > Main.DISP_WIDTH || position.y > Main.DISP_HEIGHT) {
+				dead = true;
+			}
 			prevPosition.x = position.x;
 			prevPosition.y = position.y;
 			position.x += velocity.x * timeInterval;
 			position.y += velocity.y * timeInterval;
-			// remove off-screen electrons
-			if (position.x < 0 || position.y < 0 || position.x > Main.DISP_WIDTH || position.y > Main.DISP_HEIGHT) {
-				dead = true;
-			}
-			// randomly split the electron
-			if (Math.random() > 0.99) {
-				var split:Electron  = new Electron(position.x + Math.random(), position.y + Math.random());
-				split.velocity.x = velocity.x;
-				split.velocity.y = velocity.y;
-				position.x += Math.random();
-				position.y += Math.random();
-			}
 		}
 		
 		private function draw():void {
-			drawLayer.graphics.moveTo(prevPosition.x, prevPosition.y);
-			drawLayer.graphics.lineStyle(lineWidth, lineColor, lineAlpha);
-			drawLayer.graphics.lineTo(position.x, position.y);
+			if (BMD != null) {
+				drawLayer.graphics.moveTo(prevPosition.x, prevPosition.y);
+				drawLayer.graphics.lineStyle(lineWidth, lineColor, lineAlpha);
+				drawLayer.graphics.lineTo(position.x, position.y);
+			}
+		}
+		
+		private static function mergePaths(e1:Electron, e2:Electron):void {
+			// Calculate the electrons' merged values
+			var newPos:Point = new Point((e1.position.x + e2.position.x) / 2, (e1.position.y + e2.position.y) / 2);
+			var newVel:Point = new Point((e1.velocity.x + e2.velocity.x) / 2, (e1.velocity.y + e2.velocity.y) / 2);
+			var newStr:Number = e1.strength + e2.strength;
+			var newWidth:Number = Math.sqrt(newStr) / 10;
+			var newAlpha:Number = Math.min(1, (e1.lineAlpha + e2.lineAlpha) / 2);
+			// Draw lines from their position to the merged electrons' position.
+			drawLayer.graphics.moveTo(e2.position.x, e2.position.y);
+			drawLayer.graphics.lineStyle(e2.lineWidth, e2.lineColor, e2.lineAlpha);
+			drawLayer.graphics.lineTo(newPos.x, newPos.y);
+			drawLayer.graphics.moveTo(e1.position.x, e1.position.y);
+			drawLayer.graphics.lineStyle(e1.lineWidth, e1.lineColor, e1.lineAlpha);
+			drawLayer.graphics.lineTo(newPos.x, newPos.y);
+			// kill the second electron, and assign the new values to the new electron.
+			e2.dead = true;
+			e1.position.x = newPos.x;
+			e1.position.y = newPos.y;
+			e1.velocity.x = newVel.x;
+			e1.velocity.y = newVel.y;
+			e1.strength = newStr;
+			e1.lineWidth = newWidth;
+			e1.lineAlpha = newAlpha; // Doesn't seem to be working...
 		}
 		
 		

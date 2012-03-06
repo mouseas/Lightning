@@ -1,8 +1,10 @@
 package 
 {
-	import flash.display.*;
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.events.MouseEvent;
+	import flash.geom.Point;
 	
 	/**
 	 * Short generative art project simulating an electric discharge into a glass block.
@@ -10,6 +12,25 @@ package
 	 */
 	public class Main extends Sprite 
 	{
+		/**
+		 * Height of the screen, as well as the bitmap.
+		 */
+		public static const DISP_WIDTH:uint = 800;
+		
+		/**
+		 * Width of the screen.
+		 */
+		public static const DISP_HEIGHT:uint = 600;
+		
+		/**
+		 * The bitmap displayed on screen.
+		 */
+		public var displayBitmap:Bitmap;
+		
+		/**
+		 * The data for the displayed bitmap. The Electron class draws to this bitmap data.
+		 */
+		public var displayBMD:BitmapData;
 		
 		/**
 		 * The bitmap data the lightning burst will be drawn on.
@@ -39,31 +60,26 @@ package
 		private function init(e:Event = null):void 
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
-			// Create the various objects...
+			
 			displayBMD = new BitmapData(DISP_WIDTH, DISP_HEIGHT, true, 0xff000000);
 			displayBitmap = new Bitmap(displayBMD);
-			drawLayer = new Sprite();
+			Zorch.BMD = displayBMD;
 			
-			for (var i:int = 0; i < 100; i++) {
-				new Electron (300 + Math.random() * 5, 300 + Math.random() * 5);
+			Zorch.exitPoint = new Point(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
+			
+			for (var i:int = 0; i < 5000; i++) {
+				new Zorch(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
 			}
-			addChild(displayBitmap);
-			addEventListener(Event.ENTER_FRAME, update);
 			
+			trace (Zorch.zorches.length);
+			
+			addChild(displayBitmap);
+			//addChild(Electron.drawLayer);
+			addEventListener(Event.ENTER_FRAME, updateHandler);
 		}
 		
-		private function drawToBitmapData(event:Event = null):void {
-			// Draw the drawLayer's contents to the bitmap.
-			displayBMD.draw(Electron.drawLayer);
-			// Then clear the drawLayer.
-			Electron.drawLayer.graphics.clear();
-		}
-		
-		private function update(e:Event):void {
-			Electron.update();
-			var elec:Electron = Electron.electrons[0];
-			//trace ("Force:" + elec.force + " Pos:" + elec.position + " Vel:" + elec.velocity)
-			drawToBitmapData();
+		public function updateHandler(e:Event = null):void {
+			Zorch.update();
 		}
 		
 	}
