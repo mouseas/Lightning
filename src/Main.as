@@ -4,6 +4,7 @@ package
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.geom.Point;
 	
 	/**
 	 * Short generative art project simulating an electric discharge into a glass block.
@@ -43,19 +44,23 @@ package
 			
 			displayBMD = new BitmapData(DISP_WIDTH, DISP_HEIGHT, true, 0xff000000);
 			displayBitmap = new Bitmap(displayBMD);
-			Electron.BMD = displayBMD;
+			Zorch.BMD = displayBMD;
 			
-			for (var i:int = 0; i < 500; i++) {
-				new Electron(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
+			Zorch.exitPoint = new Point(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
+			
+			for (var i:int = 0; i < 5000; i++) {
+				new Zorch(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
 			}
 			
+			trace (Zorch.zorches.length);
+			
 			addChild(displayBitmap);
-			addChild(Electron.drawLayer);
+			//addChild(Electron.drawLayer);
 			addEventListener(Event.ENTER_FRAME, updateHandler);
 		}
 		
 		public function updateHandler(e:Event = null):void {
-			Electron.update();
+			Zorch.update();
 		}
 		
 	}
