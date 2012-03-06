@@ -30,7 +30,7 @@ package {
 		
 		public static const LINE_WIDTH:Number = 1.0;
 		
-		public static const LINE_ALPHA:Number = 0.2;
+		public static const LINE_ALPHA:Number = 0.1;
 		
 		public static const LINE_COLOR:uint = 0xFFFFFFFF;
 		
@@ -47,50 +47,52 @@ package {
 		}
 		
 		public static function update():void {
-			for (var i:uint = 0; i < 100; i++) {
-				var z:Zorch = zorches[index];
-				if (z != null && !z.dead) {
-					var closest:Zorch;
-					var closeDist:Number = Math.sqrt((Main.DISP_WIDTH * Main.DISP_WIDTH) + (Main.DISP_HEIGHT * Main.DISP_HEIGHT));
-					var secondClosest:Zorch;
-					var secCloseDist:Number = closeDist;
-					for each (var otherZ:Zorch in zorches) {
-						if (!otherZ.dead && otherZ != z) {
-							var distance:Number = MathE.distance(z.position, otherZ.position);
-							if (distance < closeDist) {
-								closest = otherZ;
-								closeDist = distance;
-							} else if (distance < secCloseDist) {
-								secondClosest = otherZ;
-								secCloseDist = distance;
+			if (zorches.length > 100) {
+				for (var i:uint = 0; i < 100; i++) {
+					var z:Zorch = zorches[index];
+					if (z != null && !z.dead) {
+						var closest:Zorch;
+						var closeDist:Number = Math.sqrt((Main.DISP_WIDTH * Main.DISP_WIDTH) + (Main.DISP_HEIGHT * Main.DISP_HEIGHT));
+						var secondClosest:Zorch;
+						var secCloseDist:Number = closeDist;
+						for each (var otherZ:Zorch in zorches) {
+							if (!otherZ.dead && otherZ != z) {
+								var distance:Number = MathE.distance(z.position, otherZ.position);
+								if (distance < closeDist) {
+									closest = otherZ;
+									closeDist = distance;
+								} else if (distance < secCloseDist) {
+									secondClosest = otherZ;
+									secCloseDist = distance;
+								}
 							}
 						}
-					}
-					//trace(closest);
-					if (closest != null && secondClosest != null) {
-						if (Math.random() > 0.5) {
-							mergeThree(z, closest, secondClosest);
-						} else {
+						//trace(closest);
+						if (closest != null && secondClosest != null) {
+							if (Math.random() > 0.5) {
+								mergeThree(z, closest, secondClosest);
+							} else {
+								mergeTwo(z, closest);
+							}
+						} else if (closest != null && secondClosest == null) {
 							mergeTwo(z, closest);
 						}
-					} else if (closest != null && secondClosest == null) {
-						mergeTwo(z, closest);
 					}
-				}
-				index++;
-				if (index >= zorches.length) {
-					index = 0;
-					var newArray:Array = new Array();
-					for each (z in zorches) {
-						if (!z.dead) {
-							newArray.push(z);
+					index++;
+					if (index >= zorches.length) {
+						index = 0;
+						var newArray:Array = new Array();
+						for each (z in zorches) {
+							if (!z.dead) {
+								newArray.push(z);
+							}
 						}
+						zorches = newArray;
 					}
-					zorches = newArray;
 				}
+				BMD.draw(drawLayer);
+				drawLayer.graphics.clear();
 			}
-			BMD.draw(drawLayer);
-			drawLayer.graphics.clear();
 		}
 		
 		private static function mergeThree(z1:Zorch, z2:Zorch, z3:Zorch):void {
