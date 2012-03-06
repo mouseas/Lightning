@@ -68,14 +68,25 @@ package {
 					}
 					//trace(closest);
 					if (closest != null && secondClosest != null) {
-						mergeThree(z, closest, secondClosest);
+						if (Math.random() > 0.5) {
+							mergeThree(z, closest, secondClosest);
+						} else {
+							mergeTwo(z, closest);
+						}
 					} else if (closest != null && secondClosest == null) {
-						mergePaths(z, closest);
+						mergeTwo(z, closest);
 					}
 				}
 				index++;
-				while (index >= zorches.length) {
-					index -= zorches.length;
+				if (index >= zorches.length) {
+					index = 0;
+					var newArray:Array = new Array();
+					for each (z in zorches) {
+						if (!z.dead) {
+							newArray.push(z);
+						}
+					}
+					zorches = newArray;
 				}
 			}
 			BMD.draw(drawLayer);
@@ -88,34 +99,30 @@ package {
 			var newY:Number = (z1.position.y + z2.position.y + z3.position.y) / 3;
 			var newStr:Number = z1.strength + z2.strength + z3.strength;
 			var newWidth:Number = Math.sqrt(newStr) / 10;
-			if (newWidth > 5) { newWidth = 5; }
-			
+			if (newWidth > 1.5) { newWidth = 1.5; }
+			// Draw lines from their positions to the merged position.
 			z1.LineTo(newX, newY);
 			z2.LineTo(newX, newY);
 			z3.LineTo(newX, newY);
-			
+			// Kill all but the first Zorch
 			z2.dead = true;
 			z3.dead = true;
-			
+			// Assign the merged values to the first Zorch.
 			z1.position.x = newX;
 			z1.position.y = newY;
 			z1.strength = newStr;
 			z1.lineWidth = newWidth;
+			// Pull the merge point towards the exit point.
+			z1.pullTowardsExit();
 		}
 		
-		private function LineTo(x:Number, y:Number):void {
-			drawLayer.graphics.moveTo(position.x, position.y);
-			drawLayer.graphics.lineStyle(lineWidth, LINE_COLOR, LINE_ALPHA);
-			drawLayer.graphics.lineTo(x, y);
-		}
-		
-		private static function mergePaths(z1:Zorch, z2:Zorch):void {
+		private static function mergeTwo(z1:Zorch, z2:Zorch):void {
 			// Calculate the electrons' merged values
 			var newX:Number = (z1.position.x * 2 + z2.position.x * 2 ) / 4;
 			var newY:Number = (z1.position.y * 2 + z2.position.y * 2 ) / 4;
 			var newStr:Number = z1.strength + z2.strength;
 			var newWidth:Number = Math.sqrt(newStr) / 10;
-			if (newWidth > 5) { newWidth = 5; }
+			if (newWidth > 1.5) { newWidth = 1.5; }
 			// Draw lines from their position to the merged electrons' position.
 			z1.LineTo(newX, newY);
 			z2.LineTo(newX, newY);
@@ -125,7 +132,31 @@ package {
 			z1.position.y = newY;
 			z1.strength = newStr;
 			z1.lineWidth = newWidth;
+			// Pull the merge point towards the exit point.
+			z1.pullTowardsExit();
 		}
+		
+		private function LineTo(x:Number, y:Number):void {
+			drawLayer.graphics.moveTo(position.x, position.y);
+			drawLayer.graphics.lineStyle(lineWidth, LINE_COLOR, LINE_ALPHA);
+			drawLayer.graphics.lineTo(x, y);
+		}
+		
+		private function pullTowardsExit():void {
+			var distance:Number = MathE.distance(position, exitPoint);
+			var angle:Number = MathE.angleBetweenPoints(position, exitPoint);
+			angle += Math.random() * 0.3 - 0.15;
+			/**var f:Number = ((strength * 1000) / (distance * distance));
+			if (f > distance) {
+				f = distance;
+			}*/
+			var f:Number = Math.min(distance, Math.random() * 30);
+			var force:Point = new Point(Math.cos(angle) * f, Math.sin(angle) * f);
+			LineTo(position.x + force.x, position.y + force.y);
+			position.x += force.x;
+			position.y += force.y;
+		}
+		
 	}
 	
 }

@@ -23,17 +23,7 @@ package
 		public static const DISP_HEIGHT:uint = 600;
 		
 		/**
-		 * The bitmap displayed on screen.
-		 */
-		public var displayBitmap:Bitmap;
-		
-		/**
 		 * The data for the displayed bitmap. The Electron class draws to this bitmap data.
-		 */
-		public var displayBMD:BitmapData;
-		
-		/**
-		 * The bitmap data the lightning burst will be drawn on.
 		 */
 		public var displayBMD:BitmapData;
 		
@@ -46,10 +36,6 @@ package
 		 * The sprite each line will be added to, and the bitmap data will be drawn from.
 		 */
 		public var drawLayer:Sprite;
-		
-		public static const DISP_WIDTH:uint = 800;
-		public static const DISP_HEIGHT:uint = 600;
-		
 		
 		public function Main():void 
 		{
@@ -67,7 +53,7 @@ package
 			
 			Zorch.exitPoint = new Point(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
 			
-			for (var i:int = 0; i < 5000; i++) {
+			for (var i:int = 0; i < 10000; i++) {
 				new Zorch(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
 			}
 			
