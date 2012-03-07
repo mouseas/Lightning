@@ -57,9 +57,9 @@ package {
 		public static var timeInterval:Number = 0.1;
 		
 		/**
-		 * How many cycles to run in total.
+		 * How many cycles to run before merging half of the electrons
 		 */
-		public static var numCycles:uint = 200;
+		public static var numCycles:uint = 50;
 		
 		/**
 		 * Which cycle processing is currently on.
@@ -143,7 +143,18 @@ package {
 				drawLayer.graphics.clear();
 				
 				for each (var e:Electron in electrons) {
-					if (!e.dead) {
+					if (e == electrons[0]) {
+						e = Electron.electrons[0];
+						e.lineColor = 0x44ff88;
+						e.velocity.x = 0;
+						e.velocity.y = 0;
+						e.dead = false;
+						e.position.x = Main.DISP_WIDTH / 2;
+						e.position.y = Main.DISP_HEIGHT / 2;
+						if (e.strength < 1000) {
+							e.strength = 1000;
+						}
+					} else if (!e.dead) {
 						e.updateForce();
 						e.updateVelocity();
 					}
@@ -156,7 +167,22 @@ package {
 				}
 				
 				BMD.draw(drawLayer);
-				
+				currentCycle++;
+				if (currentCycle >= numCycles) {
+					currentCycle = 0;
+					for (var i:int = 0; i < electrons.length / 2; i += 2) {
+						if (electrons[i] != null && !electrons[i].dead && electrons[i+1] != null && !electrons[i + 1].dead) {
+							mergePaths(electrons[i], electrons[i + 1]);
+						}
+					}
+					var newArray:Array = new Array();
+					for each (e in electrons) {
+						if (!e.dead) {
+							newArray.push(e);
+						}
+					}
+					electrons = newArray;
+				}
 			}
 		}
 		
@@ -206,7 +232,9 @@ package {
 			var newPos:Point = new Point((e1.position.x + e2.position.x) / 2, (e1.position.y + e2.position.y) / 2);
 			var newVel:Point = new Point((e1.velocity.x + e2.velocity.x) / 2, (e1.velocity.y + e2.velocity.y) / 2);
 			var newStr:Number = e1.strength + e2.strength;
+			if (newStr > 100 && e1 != electrons[0] && e1 != electrons[0]) { newStr = 250; }
 			var newWidth:Number = Math.sqrt(newStr) / 10;
+			if (newWidth > 2.5) { newWidth = 2.5; }
 			var newAlpha:Number = Math.min(1, (e1.lineAlpha + e2.lineAlpha) / 2);
 			// Draw lines from their position to the merged electrons' position.
 			drawLayer.graphics.moveTo(e2.position.x, e2.position.y);

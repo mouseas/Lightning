@@ -50,14 +50,14 @@ package
 			displayBMD = new BitmapData(DISP_WIDTH, DISP_HEIGHT, true, 0xff000000);
 			displayBitmap = new Bitmap(displayBMD);
 			Zorch.BMD = displayBMD;
+			Electron.BMD = displayBMD;
 			
 			Zorch.exitPoint = new Point(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
 			
-			for (var i:int = 0; i < 10000; i++) {
-				new Zorch(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
+			for (var i:int = 0; i < 5000; i++) {
+				//new Zorch(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
+				new Electron(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
 			}
-			
-			trace (Zorch.zorches.length);
 			
 			addChild(displayBitmap);
 			//addChild(Electron.drawLayer);
@@ -65,7 +65,8 @@ package
 		}
 		
 		public function updateHandler(e:Event = null):void {
-			Zorch.update();
+			//Zorch.update();
+			Electron.update();
 		}
 		
 	}

@@ -69,7 +69,7 @@ package {
 						}
 						//trace(closest);
 						if (closest != null && secondClosest != null) {
-							if (Math.random() > 0.5) {
+							if (Math.random() > 0.2) {
 								mergeThree(z, closest, secondClosest);
 							} else {
 								mergeTwo(z, closest);
