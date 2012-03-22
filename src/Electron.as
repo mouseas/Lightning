@@ -3,6 +3,7 @@ package {
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Point;
+	import flash.utils.getTimer;
 	
 	public class Electron {
 		
@@ -67,6 +68,11 @@ package {
 		public static var currentCycle:uint = 0;
 		
 		/**
+		 * Which electron is currently being processed.
+		 */
+		public static var index:uint = 0;
+		
+		/**
 		 * Static array of all Electrons.
 		 */
 		public static var electrons:Array;
@@ -112,12 +118,20 @@ package {
 		public static var lineAlpha:Number = 0.2;
 		
 		/**
+		 * How much time to spend on each frame.
+		 */
+		public static var timerPerFrame:uint;
+		
+		/**
 		 * Constructor function.
 		 * @param	_x X position of the new Electron.
 		 * @param	_y Y position of the new Electron.
 		 */
 		public function Electron(_x:Number, _y:Number):void {
-			if (electrons == null) { electrons = new Array(); }
+			if (electrons == null) {
+				electrons = new Array();
+				timerPerFrame = 1000 / 30;
+			}
 			if (drawLayer == null) { drawLayer = new Sprite(); }
 			position = new Point(_x, _y);
 			prevPosition = new Point(0, 0);
@@ -142,7 +156,13 @@ package {
 				
 				drawLayer.graphics.clear();
 				
-				for each (var e:Electron in electrons) {
+				var t0:uint = getTimer();
+				
+				while (getTimer() - t0 < timerPerFrame) {
+					if (index >= electrons.length) {
+						index = 0;
+					}
+					var e:Electron = electrons[index];
 					if (e == electrons[0]) {
 						e = Electron.electrons[0];
 						e.lineColor = 0x44ff88;
@@ -154,20 +174,27 @@ package {
 						if (e.strength < 1000) {
 							e.strength = 1000;
 						}
-					} else if (!e.dead) {
+					} else if (e != null && !e.dead) {
 						e.updateForce();
 						e.updateVelocity();
-					}
-				}
-				for each (e in electrons) {
-					if (!e.dead) {
 						e.updatePosition();
 						e.draw();
 					}
+					
+					index++;
 				}
 				
 				BMD.draw(drawLayer);
-				currentCycle++;
+				
+				var newArray:Array = new Array();
+				for each (e in electrons) {
+					if (!e.dead) {
+						newArray.push(e);
+					}
+				}
+				electrons = newArray;
+				
+				/*currentCycle++;
 				if (currentCycle >= numCycles) {
 					currentCycle = 0;
 					for (var i:int = 0; i < electrons.length / 2; i += 2) {
@@ -175,14 +202,8 @@ package {
 							mergePaths(electrons[i], electrons[i + 1]);
 						}
 					}
-					var newArray:Array = new Array();
-					for each (e in electrons) {
-						if (!e.dead) {
-							newArray.push(e);
-						}
-					}
-					electrons = newArray;
-				}
+					
+				}*/
 			}
 		}
 		
