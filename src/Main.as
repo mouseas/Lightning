@@ -5,6 +5,8 @@ package
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.utils.getTimer;
 	
 	/**
 	 * Short generative art project simulating an electric discharge into a glass block.
@@ -33,9 +35,14 @@ package
 		public var displayBitmap:Bitmap;
 		
 		/**
-		 * The sprite each line will be added to, and the bitmap data will be drawn from.
+		 * Drawing Layer. Used to draw all
 		 */
 		public var drawLayer:Sprite;
+		
+		/**
+		 * Timer used for a full redraw, to save processing time + power.
+		 */
+		public var redrawTimer:uint;
 		
 		public function Main():void 
 		{
@@ -49,26 +56,46 @@ package
 			
 			displayBMD = new BitmapData(DISP_WIDTH, DISP_HEIGHT, true, 0xff000000);
 			displayBitmap = new Bitmap(displayBMD);
-			Zorch.BMD = displayBMD;
-			Electron.BMD = displayBMD;
 			
-			Zorch.exitPoint = new Point(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
+			drawLayer = new Sprite();
 			
-			for (var i:int = 0; i < 5000; i++) {
-				//new Zorch(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
-				new Electron(Math.random() * DISP_WIDTH, Math.random() * DISP_HEIGHT);
-			}
+			BrownianParticle.dispDrawLayer = drawLayer;
+			new BrownianParticle(BrownianParticle.midpoint.x, BrownianParticle.midpoint.y, true);
 			
 			addChild(displayBitmap);
-			//addChild(Electron.drawLayer);
 			addEventListener(Event.ENTER_FRAME, updateHandler);
 		}
 		
 		public function updateHandler(e:Event = null):void {
-			//Zorch.update();
-			Electron.update();
+			if (getTimer() - 1000 > redrawTimer) {
+				redrawTimer = getTimer();
+				BrownianParticle.drawAll(drawLayer);
+			}
+			BrownianParticle.drawWalker(drawLayer);
+			displayBMD.fillRect(new Rectangle(0, 0, DISP_WIDTH, DISP_HEIGHT), 0xff000000);
+			displayBMD.draw(drawLayer);
+			
+			//Hand remaining time over to particle handler.
+			BrownianParticle.frameHandler(e);
 		}
 		
+		/**
+		 * Generates a (large) string with the SVG (xml) data to reproduce a brownian tree in vector format. Useful for
+		 * printing.
+		 * @param	particles Array of particles to include. These should all be attached, and have a timestamp and color.
+		 * @return String containing the relevant xml data.
+		 */
+		public function makeSVG(particles:Array):String {
+			if (particles != null && particles.length > 0) {
+				var xml:XML = <svg xmlns = "http://www.w3.org/2000/svg" version = "1.1" /> ;
+				for each (var dot:BrownianParticle in particles) {
+					xml.appendChild(dot.outputSVG());
+				}
+				return xml.toString();
+			} else {
+				return null;
+			}
+		}
 	}
 	
 }
