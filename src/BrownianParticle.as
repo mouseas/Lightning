@@ -107,11 +107,16 @@ package {
 		}
 		
 		private function collide():void {
-			for each (var particle:BrownianParticle in attachedParticles) {
-				if (MathE.distance(_position, particle.position) < 1.5) {
-					attach();
-					break;
+			var dist:Number = getDistance();
+			if (dist < launchRadius + 1) {
+				for each (var particle:BrownianParticle in attachedParticles) {
+					if (MathE.distance(_position, particle.position) < 1.5) {
+						attach();
+						break;
+					}
 				}
+			} else {
+				//skip collision calculation; there are no particles out here to collide with.
 			}
 			
 		}
@@ -126,10 +131,7 @@ package {
 			if (dist > radius) {
 				radius = dist;
 				launchRadius = dist + 1;
-				killRadius = launchRadius * 4;
-				if (killRadius - launchRadius > 25) {
-					killRadius = launchRadius + 25;
-				}
+				killRadius = launchRadius + 25;
 			}
 		}
 		
