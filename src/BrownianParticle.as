@@ -29,6 +29,16 @@ package {
 		public var attached:Boolean;
 		
 		/**
+		 * Used when calculating collisions. The distance to the nearest attached point.
+		 */
+		public var closestDist:Number;
+		
+		/**
+		 * Used when calculating collisions. The last point at which collisions were checked.
+		 */
+		public var lastPoint:Point;
+		
+		/**
 		 * Multiplier for x and y position when drawing for display.
 		 */
 		public static var zoomFactor:Number = 2.0;
@@ -77,6 +87,8 @@ package {
 		public function BrownianParticle(_x:Number, _y:Number, _attached:Boolean = false):void {
 			_position = new Point(_x, _y);
 			attached = false;
+			lastPoint = new Point(_x, _y);
+			closestDist = 0;
 			
 			if (_attached) {
 				attach();
@@ -106,13 +118,21 @@ package {
 			}
 		}
 		
-		private function collide():void {
-			var dist:Number = getDistance();
-			if (dist < launchRadius + 1) {
+		private function collide():void {;
+			var distFromMidpoint:Number = getDistance();
+			var distFromLastPoint:Number = MathE.distance(_position, lastPoint);
+			if (distFromMidpoint < launchRadius + 1 && distFromLastPoint + 2 > closestDist) {
+				closestDist = MathE.distance(_position, attachedParticles[0].position); // Set to the distance from the seed.
+				lastPoint.x = x;
+				lastPoint.y = y;
 				for each (var particle:BrownianParticle in attachedParticles) {
-					if (MathE.distance(_position, particle.position) < 1.5) {
+					var dist:Number = MathE.distance(_position, particle.position);
+					if (dist < 1.5) {
 						attach();
 						break;
+					}
+					if (dist < closestDist) {
+						closestDist = dist;
 					}
 				}
 			} else {
