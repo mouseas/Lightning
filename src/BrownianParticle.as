@@ -41,7 +41,7 @@ package {
 		/**
 		 * Multiplier for x and y position when drawing for display.
 		 */
-		public static var zoomFactor:Number = 2.0;
+		public static var zoomFactor:Number = 1.2;
 		
 		/**
 		 * Array containing all attached (static) particles.
@@ -222,6 +222,28 @@ package {
 			//trace(numSteps);
 		}
 		
+		public static function cleanup():void {
+			recenter();
+			//recolorAll();
+			drawAll(dispDrawLayer);
+		}
+		
+		public static function recenter():void {
+			if (attachedParticles.length > 0) {
+				var top:Number = attachedParticles[0].y;
+				var bottom:Number = attachedParticles[0].y;
+				var left:Number = attachedParticles[0].x;
+				var right:Number = attachedParticles[0].x;
+				for each (var p:BrownianParticle in attachedParticles) {
+					if (p.x > right) { right = p.x; }
+					if (p.x < left) { left = p.x; }
+					if (p.y > bottom) { bottom = p.y; }
+					if (p.y < top) { top = p.y; }
+				}
+				midpoint.x = (left + right) / 2;
+				midpoint.y = (top + bottom) / 2;
+			}
+		}
 	}
 	
 }

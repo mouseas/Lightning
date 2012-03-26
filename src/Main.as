@@ -69,9 +69,9 @@ package
 		public function updateHandler(e:Event = null):void {
 			if (getTimer() - 1000 > redrawTimer) {
 				redrawTimer = getTimer();
-				BrownianParticle.drawAll(drawLayer);
+				BrownianParticle.cleanup();
 			}
-			BrownianParticle.drawWalker(drawLayer);
+			//BrownianParticle.drawWalker(drawLayer);
 			displayBMD.fillRect(new Rectangle(0, 0, DISP_WIDTH, DISP_HEIGHT), 0xff000000);
 			displayBMD.draw(drawLayer);
 			
