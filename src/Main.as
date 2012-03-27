@@ -4,6 +4,7 @@ package
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.getTimer;
@@ -62,8 +63,42 @@ package
 			BrownianParticle.dispDrawLayer = drawLayer;
 			new BrownianParticle(BrownianParticle.midpoint.x, BrownianParticle.midpoint.y, true);
 			
+			var colors:Array = BrownianParticle.colors;
+			colors.push(0xff0000);
+			colors.push(0xff1100);
+			colors.push(0xff2200);
+			colors.push(0xff3300);
+			colors.push(0xff4400);
+			colors.push(0xff5500);
+			colors.push(0xff6600);
+			colors.push(0xff7700);
+			colors.push(0xff8800);
+			colors.push(0xff9900);
+			colors.push(0xffaa00);
+			colors.push(0xffbb00);
+			colors.push(0xffcc00);
+			colors.push(0xffdd00);
+			colors.push(0xffee00);
+			colors.push(0xffff00);
+			colors.push(0xffff11);
+			colors.push(0xffff22);
+			colors.push(0xffff33);
+			colors.push(0xffff44);
+			colors.push(0xffff55);
+			colors.push(0xffff66);
+			colors.push(0xffff77);
+			colors.push(0xffff88);
+			colors.push(0xffff99);
+			colors.push(0xffffaa);
+			colors.push(0xffffbb);
+			colors.push(0xffffcc);
+			colors.push(0xffffdd);
+			colors.push(0xffffee);
+			colors.push(0xffffff);
+			
 			addChild(displayBitmap);
 			addEventListener(Event.ENTER_FRAME, updateHandler);
+			stage.addEventListener(MouseEvent.MOUSE_DOWN, BrownianParticle.recolorAll);
 		}
 		
 		public function updateHandler(e:Event = null):void {

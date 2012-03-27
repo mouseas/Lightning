@@ -6,6 +6,8 @@ package {
 	
 	public class BrownianParticle {
 		
+		public static const debug:Boolean = true;
+		
 		private var _position:Point;
 		
 		public function get position():Point { return new Point(_position.x, _position.y); }
@@ -27,6 +29,11 @@ package {
 		 * Actually, whether the particle is allowed to move. The seed particle(s) should have this set to true.
 		 */
 		public var attached:Boolean;
+		
+		/**
+		 * What color to make the circle for this particle.
+		 */
+		public var color:uint;
 		
 		/**
 		 * Used when calculating collisions. The distance to the nearest attached point.
@@ -79,6 +86,11 @@ package {
 		public static var dispDrawLayer:Sprite;
 		
 		/**
+		 * Array of colors to use when coloring particles.
+		 */
+		public static var colors:Array = new Array();
+		
+		/**
 		 * Constructor
 		 * @param	_x X position of the new particle
 		 * @param	_y Y Position of the new particle
@@ -89,6 +101,8 @@ package {
 			attached = false;
 			lastPoint = new Point(_x, _y);
 			closestDist = 0;
+			
+			color = 0xFFFFFF;
 			
 			if (_attached) {
 				attach();
@@ -145,7 +159,7 @@ package {
 			attached = true;
 			attachedParticles.push(this);
 			if (dispDrawLayer != null) {
-				draw(dispDrawLayer, 0xFFFFFF);
+				draw(dispDrawLayer);
 			}
 			var dist:Number = getDistance();
 			if (dist > radius) {
@@ -167,7 +181,7 @@ package {
 			return MathE.distance(midpoint, _position);
 		}
 		
-		public function draw(drawLayer:Sprite, color:uint = 0xFFFFFF):void {
+		public function draw(drawLayer:Sprite):void {
 			if (drawLayer != null) {
 				drawLayer.graphics.beginFill(color);
 				drawLayer.graphics.drawCircle(x * zoomFactor, y * zoomFactor, zoomFactor / 2);
@@ -177,7 +191,10 @@ package {
 		
 		public static function drawWalker(drawLayer:Sprite):void {
 			if (drawLayer != null && walkingParticle != null) {
-				walkingParticle.draw(drawLayer, 0xFF0000);
+				var tempColor:uint = walkingParticle.color;
+				walkingParticle.color = 0xff0000; // Red
+				walkingParticle.draw(drawLayer);
+				walkingParticle.color = tempColor;
 			}
 		}
 		
@@ -226,6 +243,18 @@ package {
 			recenter();
 			//recolorAll();
 			drawAll(dispDrawLayer);
+		}
+		
+		public static function recolorAll(e:Event):void {
+			trace("Recoloring");
+			if (colors != null && colors.length > 0) {
+				for (var i:int = 0; i < attachedParticles.length; i++) 
+				{
+					var whichColor:int = (int)((colors.length / attachedParticles.length) * i);
+					var p:BrownianParticle = attachedParticles[i];
+					p.color = colors[whichColor];
+				}
+			}
 		}
 		
 		public static function recenter():void {
