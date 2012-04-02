@@ -1,1 +1,1 @@
-Generative art project simulating an electic discharge into a glass black.
+Generative art project simulating an electic discharge.
